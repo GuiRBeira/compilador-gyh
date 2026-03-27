@@ -47,6 +47,6 @@ jobs:
         for file in tests/programs/*.gyh; do
           if [ -f "$file" ]; then
             echo "  Testing $(basename $file)..."
-            java -cp build LexicalAnalyzer "$file"
+            java -cp build gyh.LexicalAnalyzer "$file"
           fi
         done
