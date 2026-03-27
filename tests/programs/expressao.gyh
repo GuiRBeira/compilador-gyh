@@ -1,0 +1,10 @@
+:DEC
+a:INT
+b:INT
+c:REAL
+:PROG
+
+a := 10
+b := 20
+c := (a + b) * 3.5 / 2
+IMPRIMIR c

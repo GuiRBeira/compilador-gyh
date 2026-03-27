@@ -1,3 +1,5 @@
+package gyh;
+
 public enum TokenType {
     PCDec, PCProg, PCInt, PCReal, PCLer, PCImprimir, PCSe, PCEntao, PCSenao, PCEnqto, PCIni, PCFim,
     OpAritMult, OpAritDiv, OpAritSoma, OpAritSub,

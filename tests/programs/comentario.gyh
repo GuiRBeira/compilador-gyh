@@ -1,0 +1,14 @@
+# Primeiro comentário
+:DEC
+# Declaração das variáveis
+valor:INT
+# Variável para resultado
+resultado:REAL
+:PROG
+
+# Processamento principal
+LER valor
+resultado := valor * 2.5
+# Exibe o resultado
+IMPRIMIR resultado
+# Fim do programa

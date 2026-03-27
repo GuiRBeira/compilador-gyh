@@ -1,3 +1,5 @@
+package gyh;
+
 public class Token {
     public TokenType type;
     public String lexeme;

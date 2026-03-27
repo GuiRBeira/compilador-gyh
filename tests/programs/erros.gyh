@@ -1,0 +1,14 @@
+:DEC
+x:INT
+:PROG
+
+# Erro: = sozinho
+x = 10
+
+# Erro: caractere inválido
+y := @
+
+# Erro: palavra-chave em minúsculo
+se x > 0 entao
+    x := 1
+fim

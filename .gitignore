@@ -1,0 +1,16 @@
+# Compiled files
+build/
+*.class
+*.jar
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test outputs
+test-output/
