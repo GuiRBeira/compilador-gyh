@@ -24,7 +24,7 @@ jobs:
     - name: 🔨 Compile compiler
       run: |
         mkdir -p build
-        javac -d build src/main/java/*.java
+        javac -d build src/main/java/gyh/*.java
     
     - name: 📥 Download JUnit
       run: |
@@ -34,8 +34,8 @@ jobs:
     
     - name: 🧪 Run tests
       run: |
-        if [ -f src/test/java/LexicalAnalyzerTest.java ]; then
-          javac -cp "build:lib/junit-platform-console-standalone.jar" -d build src/test/java/*.java
+        if [ -f src/test/java/gyh/LexicalAnalyzerTest.java ]; then
+          javac -cp "build:lib/junit-platform-console-standalone.jar" -d build src/test/java/gyh/*.java
           java -jar lib/junit-platform-console-standalone.jar --class-path build --scan-class-path --include-classname '.*Test'
         else
           echo "No tests found yet"
@@ -44,7 +44,7 @@ jobs:
     - name: 📝 Test example programs
       run: |
         echo "Testing example programs..."
-        for file in tests/programas/*.gyh; do
+        for file in tests/programs/*.gyh; do
           if [ -f "$file" ]; then
             echo "  Testing $(basename $file)..."
             java -cp build LexicalAnalyzer "$file"
