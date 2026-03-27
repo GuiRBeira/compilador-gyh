@@ -108,7 +108,21 @@ public class LexicalAnalyzer {
     private Token readNumber(int startLine, int startColumn) {
         StringBuilder number = new StringBuilder();
         boolean hasDot = false;
+
+        if (currentChar == '.') {
+            number.append('.');
+            hasDot = true;
+            advance();
+
+            // Se o próximo caractere não for um dígito, é um erro
+            if (!fileReader.isEOF() && !Character.isDigit(currentChar)) {
+                Token errorToken = new Token(null, number.toString());
+                errorToken.lexeme = number.toString();
+                return errorToken;
+            }
+        }
         
+
         while (!fileReader.isEOF() && (Character.isDigit(currentChar) || currentChar == '.')) {
             if (currentChar == '.') {
                 if (hasDot) {
