@@ -1,0 +1,5 @@
+:DEC
+a:INT
+:PROG
+a := 3.5
+IMPRIMIR a

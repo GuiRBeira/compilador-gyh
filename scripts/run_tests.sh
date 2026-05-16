@@ -12,8 +12,8 @@ echo -e "${BLUE}   Testes do Compilador - Linguagem GYH${NC}"
 echo -e "${BLUE}========================================${NC}"
 
 # Compilar
-echo -e "\n${YELLOW}[1/3] Compilando o analisador léxico...${NC}"
-javac -d build src/main/java/gyh/*.java
+echo -e "\n${YELLOW}[1/3] Compilando o analisador...${NC}"
+javac -d build src/gyh/*.java
 
 if [ $? -ne 0 ]; then
     echo -e "${RED}❌ Falha na compilação!${NC}"
@@ -32,7 +32,7 @@ fi
 # Compilar testes
 echo -e "\n${YELLOW}[2/3] Compilando os testes...${NC}"
 javac -cp "build:lib/junit-platform-console-standalone-1.10.0.jar" \
-    -d build src/test/java/gyh/*.java
+    -d build tests/java/gyh/*.java
 
 if [ $? -ne 0 ]; then
     echo -e "${RED}❌ Falha na compilação dos testes!${NC}"
@@ -54,10 +54,10 @@ java -jar lib/junit-platform-console-standalone-1.10.0.jar \
 echo -e "\n${YELLOW}Testando programas de exemplo...${NC}"
 echo -e "${BLUE}----------------------------------------${NC}"
 
-for file in tests/programas/*.gyh; do
+for file in tests/programs/*.gyh; do
     if [ -f "$file" ]; then
         echo -n "  Testando $(basename "$file")... "
-        java -cp build LexicalAnalyzer "$file" > /dev/null 2>&1
+        java -cp build gyh.Main "$file" > /dev/null 2>&1
         if [ $? -eq 0 ]; then
             echo -e "${GREEN}✓ OK${NC}"
         else

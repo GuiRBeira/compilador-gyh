@@ -4,13 +4,14 @@ import java.io.FileReader;
 import java.io.BufferedReader;
 import java.io.IOException;
 
-public class FR {
+public class SourceBuffer {
+    private String filePath;
     private BufferedReader reader;
     private int currentChar;
     private int line;
     private int column;
 
-    public FR(String filePath) {
+    public SourceBuffer(String filePath) {
         this.line = 1;
         this.column = 0;
         try {

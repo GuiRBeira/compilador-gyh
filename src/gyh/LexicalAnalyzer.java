@@ -3,10 +3,8 @@ package gyh;
 import java.util.*;
 
 public class LexicalAnalyzer {
-    private FR fileReader;
+    private SourceBuffer sourceBuffer;
     private char currentChar;
-    private int currentLine;
-    private int currentColumn;
     
     // Palavras-chave mapeadas para seu TokenType
     private static final Map<String, TokenType> KEYWORDS = new HashMap<>();
@@ -29,10 +27,8 @@ public class LexicalAnalyzer {
     }
     
     public LexicalAnalyzer(String filePath) {
-        this.fileReader = new FR(filePath);
-        this.currentLine = 1;
-        this.currentColumn = 1;
-        this.currentChar = fileReader.peek();
+        this.sourceBuffer = new SourceBuffer(filePath);
+        this.currentChar = sourceBuffer.peek();
     }
     
     /**
@@ -41,13 +37,14 @@ public class LexicalAnalyzer {
     public Token getToken() {
         skipWhitespaceAndComments();
         
+        int startLine = sourceBuffer.getLine();
+        int startColumn = sourceBuffer.getColumn();
+
         // Fim do arquivo
-        if (fileReader.isEOF()) {
-            return new Token(TokenType.EOF, "EOF");
+        if (sourceBuffer.isEOF()) {
+            return new Token(TokenType.EOF, "EOF", startLine, startColumn);
         }
         
-        int startLine = currentLine;
-        int startColumn = currentColumn;
         char c = currentChar;
         
         // Números (inteiro ou real)
@@ -78,23 +75,15 @@ public class LexicalAnalyzer {
      * Pula espaços, tabs, novas linhas e comentários (#)
      */
     private void skipWhitespaceAndComments() {
-        while (!fileReader.isEOF()) {
-            if (currentChar == ' ' || currentChar == '\t' || currentChar == '\r') {
-                currentColumn++;
-                advance();
-            } 
-            else if (currentChar == '\n') {
-                currentLine++;
-                currentColumn = 1;
+        while (!sourceBuffer.isEOF()) {
+            if (currentChar == ' ' || currentChar == '\t' || currentChar == '\r' || currentChar == '\n') {
                 advance();
             }
             else if (currentChar == '#') {
                 // Comentário: ignora até o fim da linha
-                while (!fileReader.isEOF() && currentChar != '\n') {
+                while (!sourceBuffer.isEOF() && currentChar != '\n') {
                     advance();
                 }
-                // Após o comentário, não avançamos a linha ainda
-                // O próximo loop vai tratar o \n
             }
             else {
                 break;
@@ -115,21 +104,16 @@ public class LexicalAnalyzer {
             advance();
 
             // Se o próximo caractere não for um dígito, é um erro
-            if (!fileReader.isEOF() && !Character.isDigit(currentChar)) {
-                Token errorToken = new Token(null, number.toString());
-                errorToken.lexeme = number.toString();
-                return errorToken;
+            if (!sourceBuffer.isEOF() && !Character.isDigit(currentChar)) {
+                return new Token(null, number.toString(), startLine, startColumn);
             }
         }
         
-
-        while (!fileReader.isEOF() && (Character.isDigit(currentChar) || currentChar == '.')) {
+        while (!sourceBuffer.isEOF() && (Character.isDigit(currentChar) || currentChar == '.')) {
             if (currentChar == '.') {
                 if (hasDot) {
                     // Segundo ponto - erro
-                    Token errorToken = new Token(null, number.toString() + currentChar);
-                    errorToken.lexeme = number.toString() + currentChar;
-                    return errorToken;
+                    return new Token(null, number.toString() + currentChar, startLine, startColumn);
                 }
                 hasDot = true;
             }
@@ -140,21 +124,14 @@ public class LexicalAnalyzer {
         String lexeme = number.toString();
         
         if (hasDot) {
-            // Caso especial: apenas "." não é um número válido
             if (lexeme.equals(".")) {
-                return new Token(null, ".");
+                return new Token(null, ".", startLine, startColumn);
             }
-            // Número real
             double value = Double.parseDouble(lexeme);
-            Token token = new Token(TokenType.NumReal, value);
-            token.lexeme = lexeme;
-            return token;
+            return new Token(TokenType.NumReal, value, startLine, startColumn);
         } else {
-            // Número inteiro
             int value = Integer.parseInt(lexeme);
-            Token token = new Token(TokenType.NumInt, value);
-            token.lexeme = lexeme;
-            return token;
+            return new Token(TokenType.NumInt, value, startLine, startColumn);
         }
     }
     
@@ -164,7 +141,7 @@ public class LexicalAnalyzer {
     private Token readIdentifier(int startLine, int startColumn) {
         StringBuilder identifier = new StringBuilder();
         
-        while (!fileReader.isEOF() && 
+        while (!sourceBuffer.isEOF() && 
                (Character.isLetterOrDigit(currentChar) || currentChar == '_')) {
             identifier.append(currentChar);
             advance();
@@ -174,12 +151,10 @@ public class LexicalAnalyzer {
         
         // Verificar se tentou usar palavra-chave em minúsculo (erro)
         if (KEYWORDS.containsKey(lexeme.toUpperCase())) {
-            Token errorToken = new Token(null, lexeme);
-            return errorToken;
+            return new Token(null, lexeme, startLine, startColumn);
         }
         
-        Token token = new Token(TokenType.Var, lexeme);
-        return token;
+        return new Token(TokenType.Var, lexeme, startLine, startColumn);
     }
     
     /**
@@ -188,7 +163,7 @@ public class LexicalAnalyzer {
     private Token readKeyword(int startLine, int startColumn) {
         StringBuilder keyword = new StringBuilder();
         
-        while (!fileReader.isEOF() && Character.isUpperCase(currentChar)) {
+        while (!sourceBuffer.isEOF() && Character.isUpperCase(currentChar)) {
             keyword.append(currentChar);
             advance();
         }
@@ -197,11 +172,9 @@ public class LexicalAnalyzer {
         TokenType type = KEYWORDS.get(lexeme);
         
         if (type != null) {
-            return new Token(type, lexeme);
+            return new Token(type, lexeme, startLine, startColumn);
         } else {
-            // Palavra maiúscula desconhecida - erro
-            Token errorToken = new Token(null, lexeme);
-            return errorToken;
+            return new Token(null, lexeme, startLine, startColumn);
         }
     }
     
@@ -212,26 +185,21 @@ public class LexicalAnalyzer {
         StringBuilder str = new StringBuilder();
         advance(); // consome a aspa de abertura
         
-        while (!fileReader.isEOF() && currentChar != '"') {
+        while (!sourceBuffer.isEOF() && currentChar != '"') {
             if (currentChar == '\n') {
-                // String não fechada na mesma linha
-                Token errorToken = new Token(null, str.toString());
-                return errorToken;
+                return new Token(null, str.toString(), startLine, startColumn);
             }
             str.append(currentChar);
             advance();
         }
         
-        if (fileReader.isEOF()) {
-            // String não fechada
-            Token errorToken = new Token(null, str.toString());
-            return errorToken;
+        if (sourceBuffer.isEOF()) {
+            return new Token(null, str.toString(), startLine, startColumn);
         }
         
         advance(); // consome a aspa de fechamento
         String lexeme = str.toString();
-        Token token = new Token(TokenType.Cadeia, lexeme, lexeme);
-        return token;
+        return new Token(TokenType.Cadeia, lexeme, lexeme, startLine, startColumn);
     }
     
     /**
@@ -245,72 +213,69 @@ public class LexicalAnalyzer {
                 advance();
                 if (currentChar == '=') {
                     advance();
-                    return new Token(TokenType.Atrib, ":=");
+                    return new Token(TokenType.Atrib, ":=", startLine, startColumn);
                 }
-                return new Token(TokenType.Delim, ":");
+                return new Token(TokenType.Delim, ":", startLine, startColumn);
                 
             case '<':
                 advance();
                 if (currentChar == '=') {
                     advance();
-                    return new Token(TokenType.OpRelMenorIgual, "<=");
+                    return new Token(TokenType.OpRelMenorIgual, "<=", startLine, startColumn);
                 }
-                return new Token(TokenType.OpRelMenor, "<");
+                return new Token(TokenType.OpRelMenor, "<", startLine, startColumn);
                 
             case '>':
                 advance();
                 if (currentChar == '=') {
                     advance();
-                    return new Token(TokenType.OpRelMaiorIgual, ">=");
+                    return new Token(TokenType.OpRelMaiorIgual, ">=", startLine, startColumn);
                 }
-                return new Token(TokenType.OpRelMaior, ">");
+                return new Token(TokenType.OpRelMaior, ">", startLine, startColumn);
                 
             case '=':
                 advance();
                 if (currentChar == '=') {
                     advance();
-                    return new Token(TokenType.OpRelIgual, "==");
+                    return new Token(TokenType.OpRelIgual, "==", startLine, startColumn);
                 }
-                // '=' sozinho é erro na GYH (deveria ser := ou ==)
-                return new Token(null, "=");
+                return new Token(null, "=", startLine, startColumn);
                 
             case '!':
                 advance();
                 if (currentChar == '=') {
                     advance();
-                    return new Token(TokenType.OpRelDif, "!=");
+                    return new Token(TokenType.OpRelDif, "!=", startLine, startColumn);
                 }
-                return new Token(null, "!");
+                return new Token(null, "!", startLine, startColumn);
                 
             case '*':
                 advance();
-                return new Token(TokenType.OpAritMult, "*");
+                return new Token(TokenType.OpAritMult, "*", startLine, startColumn);
                 
             case '/':
                 advance();
-                return new Token(TokenType.OpAritDiv, "/");
+                return new Token(TokenType.OpAritDiv, "/", startLine, startColumn);
                 
             case '+':
                 advance();
-                return new Token(TokenType.OpAritSoma, "+");
+                return new Token(TokenType.OpAritSoma, "+", startLine, startColumn);
                 
             case '-':
                 advance();
-                return new Token(TokenType.OpAritSub, "-");
+                return new Token(TokenType.OpAritSub, "-", startLine, startColumn);
                 
             case '(':
                 advance();
-                return new Token(TokenType.AbrePar, "(");
+                return new Token(TokenType.AbrePar, "(", startLine, startColumn);
                 
             case ')':
                 advance();
-                return new Token(TokenType.FechaPar, ")");
+                return new Token(TokenType.FechaPar, ")", startLine, startColumn);
                 
             default:
-                // Caractere inválido
                 advance();
-                Token errorToken = new Token(null, String.valueOf(c));
-                return errorToken;
+                return new Token(null, String.valueOf(c), startLine, startColumn);
         }
     }
     
@@ -318,18 +283,15 @@ public class LexicalAnalyzer {
      * Avança para o próximo caractere
      */
     private void advance() {
-        fileReader.advance();
-        currentChar = fileReader.peek();
-        if (currentChar != -1 && currentChar != '\n') {
-            currentColumn++;
-        }
+        sourceBuffer.advance();
+        currentChar = sourceBuffer.peek();
     }
     
     /**
      * Fecha o leitor de arquivo
      */
     public void close() {
-        fileReader.close();
+        sourceBuffer.close();
     }
     
     /**
@@ -352,29 +314,5 @@ public class LexicalAnalyzer {
         } while (token.type != TokenType.EOF);
         
         return tokens;
-    }
-    
-    public static void main(String[] args) {
-        if (args.length < 1) {
-            System.out.println("Uso: java LexicalAnalyzer <arquivo.gyh>");
-            return;
-        }
-        
-        LexicalAnalyzer analyzer = new LexicalAnalyzer(args[0]);
-        Token token;
-        
-        System.out.println("Análise Léxica - Linguagem GYH");
-        System.out.println("================================");
-        
-        do {
-            token = analyzer.getToken();
-            if (token.type != null) {
-                System.out.println(token);
-            } else {
-                System.err.println("ERRO LÉXICO: '" + token.lexeme + "'");
-            }
-        } while (token.type != TokenType.EOF);
-        
-        analyzer.close();
     }
 }
