@@ -96,9 +96,8 @@ public class SyntacticAnalyzer {
         
         TokenType varType = currentToken.type;
         if (varType == TokenType.PCInt || varType == TokenType.PCReal) {
-            if (!symbolTable.add(varName, varType)) {
-                semanticError("Variável '" + varName + "' já declarada.");
-            }
+            // Verificação semântica desativada: apenas registra se for preciso, mas não valida duplicata
+            symbolTable.add(varName, varType);
             advance();
         } else {
             syntaxError("Tipo inválido. Esperado INT ou REAL.");
@@ -137,38 +136,24 @@ public class SyntacticAnalyzer {
     private void assignment() {
         printTree("Atribuição");
         treeLevel++;
-        String varName = currentToken.lexeme;
-        if (!symbolTable.exists(varName)) {
-            semanticError("Variável '" + varName + "' não declarada.");
-        }
-        TokenType varType = symbolTable.getType(varName);
-        
+        // Verificação semântica desativada: não checa se variável existe
         match(TokenType.Var);
         match(TokenType.Atrib); // ':='
         
-        TokenType exprType = expression();
-        
-        if (varType == TokenType.PCInt && exprType == TokenType.PCReal) {
-            semanticError("Tipo incompatível: não é possível atribuir REAL para a variável INT '" + varName + "'.");
-        }
+        expression();
         treeLevel--;
     }
 
     private void readCommand() {
         match(TokenType.PCLer);
-        String varName = currentToken.lexeme;
-        if (!symbolTable.exists(varName)) {
-            semanticError("Variável '" + varName + "' não declarada.");
-        }
+        // Verificação semântica desativada: não checa se variável existe
         match(TokenType.Var);
     }
 
     private void printCommand() {
         match(TokenType.PCImprimir);
         if (currentToken.type == TokenType.Var) {
-            if (!symbolTable.exists(currentToken.lexeme)) {
-                semanticError("Variável '" + currentToken.lexeme + "' não declarada.");
-            }
+            // Verificação semântica desativada
             advance();
         } else if (currentToken.type == TokenType.Cadeia) {
             advance();
@@ -263,13 +248,9 @@ public class SyntacticAnalyzer {
 
     private TokenType factor() {
         if (currentToken.type == TokenType.Var) {
-            String varName = currentToken.lexeme;
-            if (!symbolTable.exists(varName)) {
-                semanticError("Variável '" + varName + "' não declarada.");
-            }
-            TokenType type = symbolTable.getType(varName);
+            // Verificação semântica desativada
             advance();
-            return type;
+            return null; // Tipo ignorado na análise puramente sintática
         } else if (currentToken.type == TokenType.NumInt) {
             advance();
             return TokenType.PCInt;

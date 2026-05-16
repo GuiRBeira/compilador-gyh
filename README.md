@@ -75,10 +75,12 @@ Git (para clonar o repositório)
 Curl (para instalação do jabba)
 
 📦 Instalação
+
 1. Instalando Java com Jabba
-Recomendamos usar jabba (Java Version Manager), similar ao nvm para Node.js, para gerenciar versões do Java de forma isolada.
+   Recomendamos usar jabba (Java Version Manager), similar ao nvm para Node.js, para gerenciar versões do Java de forma isolada.
 
 Linux / macOS:
+
 ```bash
 # Instalar jabba
 curl -sL https://github.com/Jabba-Team/jabba/raw/main/install.sh | bash && . ~/.jabba/jabba.sh
@@ -93,7 +95,9 @@ jabba use 21
 java -version
 javac -version
 ```
+
 Windows (PowerShell):
+
 ```powershell
 # Instalar jabba
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -107,7 +111,7 @@ jabba use 21
 ```
 
 2. Instalando JUnit
-O JUnit é necessário para executar os testes unitários. O script de testes já faz o download automático, mas você pode baixar manualmente:
+   O JUnit é necessário para executar os testes unitários. O script de testes já faz o download automático, mas você pode baixar manualmente:
 
 ```bash
 mkdir -p lib
@@ -116,49 +120,48 @@ wget -O lib/junit-platform-console-standalone-1.10.0.jar \
 ```
 
 3. Clonando o repositório
+
 ```bash
 git clone https://github.com/seu-usuario/compilador-gyh.git
 cd compilador-gyh
 📁 Estrutura do Projeto
-text
+```text
 compilador-gyh/
-├── .github/
-│   └── workflows/
-│       └── ci.yml              # GitHub Actions CI
 ├── src/
-│   ├── main/java/gyh/
-│   │   ├── FR.java             # Leitor de arquivos (buffer duplo)
-│   │   ├── Token.java          # Representação de token
-│   │   ├── TokenType.java      # Tipos de token da linguagem GYH
-│   │   └── LexicalAnalyzer.java # Analisador léxico
-│   └── test/java/gyh/
-│       └── LexicalAnalyzerTest.java # Testes unitários (46 testes)
+│   └── gyh/
+│       ├── LexicalAnalyzer.java   # Analisador Léxico
+│       ├── SyntacticAnalyzer.java # Analisador Sintático (Recursive Descent)
+│       ├── SourceBuffer.java      # Gerenciamento de leitura de arquivo (antigo FR)
+│       ├── Token.java             # Definição de Tokens
+│       └── Main.java              # Ponto de entrada do compilador
 ├── tests/
+│   ├── java/gyh/                  # Testes Unitários JUnit 5
 │   └── programs/
 │       ├── fatorial.gyh        # Programa exemplo
 │       ├── expressao.gyh       # Expressões aritméticas
 │       ├── comentario.gyh      # Teste de comentários
-│       └── erros.gyh           # Casos de erro léxico
+│       ├── erro_semantico.gyh  # Erro de declaração
+│       ├── erro_tipo.gyh       # Erro de compatibilidade
+│       └── erros.gyh           # Casos de erro léxico/sintático
 ├── scripts/
-│   └── run_tests.sh            # Script para executar testes localmente
-├── lib/                        # Bibliotecas (JUnit)
-├── .gitignore
-└── README.md
+│   └── run_tests.sh            # Script de automação de testes
+└── lib/                        # Bibliotecas (JUnit)
 ```
 
 🚀 Como Executar
-## Compilando o Analisador Léxico
+
+## Compilando e Executando
 ```bash
-# Compilar todos os arquivos
-javac -d build src/main/java/gyh/*.java
+# Compilar o projeto
+javac -d build src/gyh/*.java
+
+# Executar a análise completa (Léxica + Sintática + Árvore)
+java -cp build gyh.Main tests/programs/fatorial.gyh
 ```
-Executando a Análise Léxica
-```bash
-# Executar com um arquivo de teste
-java -cp build gyh.LexicalAnalyzer tests/programs/fatorial.gyh
-```
+
 Executando os Testes
 Via script (recomendado):
+
 ```bash
 # Tornar o script executável (primeira vez)
 chmod +x scripts/run_tests.sh
@@ -166,7 +169,9 @@ chmod +x scripts/run_tests.sh
 # Executar todos os testes
 ./scripts/run_tests.sh
 ```
+
 Manualmente:
+
 ```bash
 # Compilar os testes
 javac -cp "build:lib/junit-platform-console-standalone-1.10.0.jar" \
@@ -177,6 +182,7 @@ java -jar lib/junit-platform-console-standalone-1.10.0.jar \
      --class-path build \
      --scan-class-path
 ```
+
 📝 Exemplos
 Programa Fatorial
 Arquivo: tests/programs/fatorial.gyh
@@ -201,7 +207,9 @@ SENAO
 FIM
 IMPRIMIR fatorial
 ```
+
 Saída da Análise Léxica
+
 ```bash
 $ java -cp build gyh.LexicalAnalyzer tests/programs/fatorial.gyh
 
@@ -256,60 +264,78 @@ Token [type=PCImprimir, lexeme=IMPRIMIR, intValue=null, realValue=null, stringVa
 Token [type=Var, lexeme=fatorial, intValue=null, realValue=null, stringValue=null]
 Token [type=EOF, lexeme=EOF, intValue=null, realValue=null, stringValue=null]
 ```
+
+### Saída da Árvore Sintática (Novo!)
+Ao executar o compilador, agora é possível visualizar a hierarquia do programa:
+```text
+└─ Programa [token: :]
+  └─ ListaDeclaracoes [token: parametro]
+    └─ DeclaraçãoVariável [token: parametro]
+    └─ DeclaraçãoVariável [token: fatorial]
+  └─ ListaComandos [token: LER]
+    └─ Atribuição [token: fatorial]
+      └─ Expressão [token: parametro]
+    └─ ComandoRepeticao (ENQTO) [token: ENQTO]
+      └─ Expressão [token: parametro]
+      └─ SubAlgoritmo (Bloco) [token: INI]
+```
+
 ## 📚 Especificação da Linguagem
 
 ### Palavras-chave
 
-| Palavra | Token | Descrição |
-|---------|-------|-----------|
-| `DEC` | `PCDec` | Início da seção de declarações |
-| `PROG` | `PCProg` | Início do programa principal |
-| `INT` | `PCInt` | Tipo inteiro |
-| `REAL` | `PCReal` | Tipo real |
-| `LER` | `PCLer` | Comando de leitura |
-| `IMPRIMIR` | `PCImprimir` | Comando de escrita |
-| `SE` | `PCSe` | Condicional |
-| `ENTAO` | `PCEntao` | Parte do condicional |
-| `SENAO` | `PCSenao` | Parte do condicional |
-| `ENQTO` | `PCEnqto` | Laço de repetição |
-| `INI` | `PCIni` | Início de bloco |
-| `FIM` | `PCFim` | Fim de bloco |
+| Palavra    | Token        | Descrição                      |
+| ---------- | ------------ | ------------------------------ |
+| `DEC`      | `PCDec`      | Início da seção de declarações |
+| `PROG`     | `PCProg`     | Início do programa principal   |
+| `INT`      | `PCInt`      | Tipo inteiro                   |
+| `REAL`     | `PCReal`     | Tipo real                      |
+| `LER`      | `PCLer`      | Comando de leitura             |
+| `IMPRIMIR` | `PCImprimir` | Comando de escrita             |
+| `SE`       | `PCSe`       | Condicional                    |
+| `ENTAO`    | `PCEntao`    | Parte do condicional           |
+| `SENAO`    | `PCSenao`    | Parte do condicional           |
+| `ENQTO`    | `PCEnqto`    | Laço de repetição              |
+| `INI`      | `PCIni`      | Início de bloco                |
+| `FIM`      | `PCFim`      | Fim de bloco                   |
 
 ### Operadores
 
-| Operador | Token | Categoria |
-|----------|-------|-----------|
-| `*` | `OpAritMult` | Aritmético |
-| `/` | `OpAritDiv` | Aritmético |
-| `+` | `OpAritSoma` | Aritmético |
-| `-` | `OpAritSub` | Aritmético |
-| `<` | `OpRelMenor` | Relacional |
-| `<=` | `OpRelMenorIgual` | Relacional |
-| `>` | `OpRelMaior` | Relacional |
-| `>=` | `OpRelMaiorIgual` | Relacional |
-| `==` | `OpRelIgual` | Relacional |
-| `!=` | `OpRelDif` | Relacional |
-| `E` | `OpBoolE` | Booleano |
-| `OU` | `OpBoolOu` | Booleano |
+| Operador | Token             | Categoria  |
+| -------- | ----------------- | ---------- |
+| `*`      | `OpAritMult`      | Aritmético |
+| `/`      | `OpAritDiv`       | Aritmético |
+| `+`      | `OpAritSoma`      | Aritmético |
+| `-`      | `OpAritSub`       | Aritmético |
+| `<`      | `OpRelMenor`      | Relacional |
+| `<=`     | `OpRelMenorIgual` | Relacional |
+| `>`      | `OpRelMaior`      | Relacional |
+| `>=`     | `OpRelMaiorIgual` | Relacional |
+| `==`     | `OpRelIgual`      | Relacional |
+| `!=`     | `OpRelDif`        | Relacional |
+| `E`      | `OpBoolE`         | Booleano   |
+| `OU`     | `OpBoolOu`        | Booleano   |
 
 ### Tokens Especiais
 
-| Símbolo | Token | Descrição |
-|---------|-------|-----------|
-| `:` | `Delim` | Delimitador |
-| `:=` | `Atrib` | Atribuição |
-| `(` | `AbrePar` | Parêntese esquerdo |
-| `)` | `FechaPar` | Parêntese direito |
-| `#` | (ignorado) | Comentário até o fim da linha |
+| Símbolo | Token      | Descrição                     |
+| ------- | ---------- | ----------------------------- |
+| `:`     | `Delim`    | Delimitador                   |
+| `:=`    | `Atrib`    | Atribuição                    |
+| `(`     | `AbrePar`  | Parêntese esquerdo            |
+| `)`     | `FechaPar` | Parêntese direito             |
+| `#`     | (ignorado) | Comentário até o fim da linha |
 
 # 🛠 Tecnologias Utilizadas
-Tecnologia	Versão	Finalidade
-Java	21 LTS	Linguagem de implementação
-JUnit	5.10.0	Testes unitários
-GitHub Actions	-	CI/CD
-Jabba	-	Gerenciador de versões Java
+
+Tecnologia Versão Finalidade
+Java 21 LTS Linguagem de implementação
+JUnit 5.10.0 Testes unitários
+GitHub Actions - CI/CD
+Jabba - Gerenciador de versões Java
 
 # 📈 Próximos Passos
+
 Análise Sintática (Parser)
 
 Análise Semântica (Type Checker)

@@ -14,3 +14,4 @@ Thumbs.db
 
 # Test outputs
 test-output/
+src/gyh/*.bak
