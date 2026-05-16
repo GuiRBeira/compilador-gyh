@@ -430,12 +430,66 @@ class LexicalAnalyzerTest {
     }
     
     @Test
-    @DisplayName("Deve detectar erro: caractere inválido")
-    void testErrorInvalidChar() throws IOException {
+    @DisplayName("Deve detectar erro: caractere inválido @")
+    void testErrorInvalidCharAt() throws IOException {
         LexicalAnalyzer analyzer = createAnalyzerFromString("@");
         Token token = analyzer.getToken();
         assertNull(token.type);
         assertEquals("@", token.lexeme);
+        analyzer.close();
+    }
+
+    @Test
+    @DisplayName("Deve detectar erro: caractere inválido $")
+    void testErrorInvalidCharDollar() throws IOException {
+        LexicalAnalyzer analyzer = createAnalyzerFromString("$");
+        Token token = analyzer.getToken();
+        assertNull(token.type);
+        assertEquals("$", token.lexeme);
+        analyzer.close();
+    }
+
+    @Test
+    @DisplayName("Deve detectar erro: caractere inválido %")
+    void testErrorInvalidCharPercent() throws IOException {
+        LexicalAnalyzer analyzer = createAnalyzerFromString("%");
+        Token token = analyzer.getToken();
+        assertNull(token.type);
+        assertEquals("%", token.lexeme);
+        analyzer.close();
+    }
+
+    @Test
+    @DisplayName("Deve detectar erro: caractere inválido &")
+    void testErrorInvalidCharAmpersand() throws IOException {
+        LexicalAnalyzer analyzer = createAnalyzerFromString("&");
+        Token token = analyzer.getToken();
+        assertNull(token.type);
+        assertEquals("&", token.lexeme);
+        analyzer.close();
+    }
+
+    @Test
+    @DisplayName("Deve detectar erro: caractere inválido ?")
+    void testErrorInvalidCharQuestion() throws IOException {
+        LexicalAnalyzer analyzer = createAnalyzerFromString("?");
+        Token token = analyzer.getToken();
+        assertNull(token.type);
+        assertEquals("?", token.lexeme);
+        analyzer.close();
+    }
+
+    @Test
+    @DisplayName("Deve detectar erro: símbolos de outras linguagens { } [ ]")
+    void testErrorForeignSymbols() throws IOException {
+        String symbols = "{ } [ ]";
+        LexicalAnalyzer analyzer = createAnalyzerFromString(symbols);
+        
+        for (String sym : new String[]{"{", "}", "[", "]"}) {
+            Token token = analyzer.getToken();
+            assertNull(token.type, "Símbolo " + sym + " deveria ser erro");
+            assertEquals(sym, token.lexeme);
+        }
         analyzer.close();
     }
     

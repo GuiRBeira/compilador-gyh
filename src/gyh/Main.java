@@ -1,5 +1,12 @@
 package gyh;
 
+/*
+ * Trabalho de Compiladores - Compilador GYH
+ * Nome: Guilherme R. Beira
+ * RA: 2270080
+ * ************************
+ */
+
 public class Main {
 
     public static void main(String[] args) {

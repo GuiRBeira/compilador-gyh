@@ -4,6 +4,8 @@ public class SyntacticAnalyzer {
     private LexicalAnalyzer scanner;
     private Token currentToken;
     private SymbolTable symbolTable;
+    // Nível atual da árvore para indentação
+    private int treeLevel = 0;
 
     public SyntacticAnalyzer(LexicalAnalyzer scanner) {
         // Atribui o scanner
@@ -42,7 +44,18 @@ public class SyntacticAnalyzer {
         throw new GYHException("SEMÂNTICO", message, currentToken.line, currentToken.column);
     }
 
+    // Método auxiliar para imprimir a árvore sintática
+    private void printTree(String rule) {
+        for (int i = 0; i < treeLevel; i++) {
+            System.out.print("  ");
+        }
+        System.out.println("└─ " + rule + (currentToken != null ? " [token: " + currentToken.lexeme + "]" : ""));
+    }
+
     public SymbolTable parse() {
+        printTree("Programa");
+        treeLevel++;
+        
         // Deve começar com :DEC
         match(TokenType.Delim); // ':'
         match(TokenType.PCDec); // 'DEC'
@@ -59,17 +72,24 @@ public class SyntacticAnalyzer {
         
         // Deve terminar com EOF
         match(TokenType.EOF);
+        
+        treeLevel--;
         // Retorna a tabela de símbolos preenchida
         return symbolTable;
     }
 
     private void declarations() {
+        printTree("ListaDeclaracoes");
+        treeLevel++;
         while (currentToken.type == TokenType.Var) {
             variableDeclaration();
         }
+        treeLevel--;
     }
 
     private void variableDeclaration() {
+        printTree("DeclaraçãoVariável");
+        treeLevel++;
         String varName = currentToken.lexeme;
         match(TokenType.Var);
         match(TokenType.Delim); // ':'
@@ -83,12 +103,16 @@ public class SyntacticAnalyzer {
         } else {
             syntaxError("Tipo inválido. Esperado INT ou REAL.");
         }
+        treeLevel--;
     }
 
     private void statementList() {
+        printTree("ListaComandos");
+        treeLevel++;
         while (currentToken.type != TokenType.EOF && currentToken.type != TokenType.PCFim && currentToken.type != TokenType.PCSenao) {
             statement();
         }
+        treeLevel--;
     }
 
     private void statement() {
@@ -111,6 +135,8 @@ public class SyntacticAnalyzer {
     }
 
     private void assignment() {
+        printTree("Atribuição");
+        treeLevel++;
         String varName = currentToken.lexeme;
         if (!symbolTable.exists(varName)) {
             semanticError("Variável '" + varName + "' não declarada.");
@@ -125,6 +151,7 @@ public class SyntacticAnalyzer {
         if (varType == TokenType.PCInt && exprType == TokenType.PCReal) {
             semanticError("Tipo incompatível: não é possível atribuir REAL para a variável INT '" + varName + "'.");
         }
+        treeLevel--;
     }
 
     private void readCommand() {
@@ -163,23 +190,33 @@ public class SyntacticAnalyzer {
     }
 
     private void whileCommand() {
+        printTree("ComandoRepeticao (ENQTO)");
+        treeLevel++;
         match(TokenType.PCEnqto);
         expression();
         // O corpo do ENQTO é um sub-algoritmo
         subAlgorithm();
+        treeLevel--;
     }
 
     private void subAlgorithm() {
+        printTree("SubAlgoritmo (Bloco)");
+        treeLevel++;
         // Início do bloco
         match(TokenType.PCIni);
         // Lista de comandos dentro do bloco
         statementList();
         // Fim do bloco
         match(TokenType.PCFim);
+        treeLevel--;
     }
 
     private TokenType expression() {
-        return logicalExpression();
+        printTree("Expressão");
+        treeLevel++;
+        TokenType type = logicalExpression();
+        treeLevel--;
+        return type;
     }
 
     private TokenType logicalExpression() {
