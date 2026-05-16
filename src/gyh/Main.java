@@ -4,6 +4,8 @@ package gyh;
  * Trabalho de Compiladores - Compilador GYH
  * Nome: Guilherme R. Beira
  * RA: 2270080
+ * Nome: Pedro Miguel Lorin
+ * RA: 2478528
  * ************************
  */
 
