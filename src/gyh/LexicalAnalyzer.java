@@ -128,10 +128,10 @@ public class LexicalAnalyzer {
                 return new Token(null, ".", startLine, startColumn);
             }
             double value = Double.parseDouble(lexeme);
-            return new Token(TokenType.NumReal, value, startLine, startColumn);
+            return new Token(TokenType.NumReal, lexeme, value, startLine, startColumn);
         } else {
             int value = Integer.parseInt(lexeme);
-            return new Token(TokenType.NumInt, value, startLine, startColumn);
+            return new Token(TokenType.NumInt, lexeme, value, startLine, startColumn);
         }
     }
     

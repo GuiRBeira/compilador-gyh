@@ -26,9 +26,11 @@ public class Main {
 
         } catch (GYHException e) {
             System.err.println(e.getMessage());
+            System.exit(1);
         } catch (Exception e) {
             System.err.println("[ERRO CRÍTICO]: " + e.getMessage());
             e.printStackTrace();
+            System.exit(1);
         } finally {
             if (analyzer != null) {
                 analyzer.close();

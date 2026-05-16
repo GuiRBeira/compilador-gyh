@@ -56,12 +56,24 @@ echo -e "${BLUE}----------------------------------------${NC}"
 
 for file in tests/programs/*.gyh; do
     if [ -f "$file" ]; then
-        echo -n "  Testando $(basename "$file")... "
+        filename=$(basename "$file")
+        echo -n "  Testando $filename... "
+        
         java -cp build gyh.Main "$file" > /dev/null 2>&1
-        if [ $? -eq 0 ]; then
-            echo -e "${GREEN}✓ OK${NC}"
+        exit_code=$?
+
+        if [[ "$filename" == *"erro"* ]]; then
+            if [ $exit_code -ne 0 ]; then
+                echo -e "${GREEN}✓ ERRO ESPERADO${NC}"
+            else
+                echo -e "${RED}✗ FALHOU (Erro não detectado)${NC}"
+            fi
         else
-            echo -e "${RED}✗ FALHOU${NC}"
+            if [ $exit_code -eq 0 ]; then
+                echo -e "${GREEN}✓ OK${NC}"
+            else
+                echo -e "${RED}✗ FALHOU (Erro inesperado)${NC}"
+            fi
         fi
     fi
 done

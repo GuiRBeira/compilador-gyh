@@ -16,15 +16,17 @@ public class Token {
         this.column = column;
     }
 
-    public Token(TokenType type, Integer intValue, int line, int column) {
+    public Token(TokenType type, String lexeme, Integer intValue, int line, int column) {
         this.type = type;
+        this.lexeme = lexeme;
         this.intValue = intValue;
         this.line = line;
         this.column = column;
     }
 
-    public Token(TokenType type, Double realValue, int line, int column) {
+    public Token(TokenType type, String lexeme, Double realValue, int line, int column) {
         this.type = type;
+        this.lexeme = lexeme;
         this.realValue = realValue;
         this.line = line;
         this.column = column;

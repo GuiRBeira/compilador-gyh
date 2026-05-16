@@ -1,7 +1,5 @@
 package gyh;
 
-import java.util.List;
-
 public class SyntacticAnalyzer {
     private LexicalAnalyzer scanner;
     private Token currentToken;
