@@ -12,13 +12,19 @@ public class SourceBuffer {
     private int column;
 
     public SourceBuffer(String filePath) {
+        // Inicializa linha como 1
         this.line = 1;
+        // Inicializa coluna como 0
         this.column = 0;
         try {
+            // Abre o leitor de arquivo
             this.reader = new BufferedReader(new FileReader(filePath));
+            // Lê o primeiro caractere
             this.currentChar = reader.read();
+            // Define coluna inicial como 1
             this.column = 1;
         } catch (IOException e) {
+            // Lança erro se não conseguir abrir
             throw new RuntimeException("Erro ao abrir arquivo: " + filePath, e);
         }
     }
@@ -27,10 +33,13 @@ public class SourceBuffer {
      * Retorna o caractere atual sem avançar.
      * Retorna -1 se chegou ao fim do arquivo.
      */
+    // Retorna o caractere atual
     public char peek() {
+        // Se for fim de arquivo retorna nulo
         if (isEOF()) {
             return '\0';
         }
+        // Retorna o caractere convertido
         return (char) currentChar;
     }
 
@@ -38,21 +47,29 @@ public class SourceBuffer {
      * Avança para o próximo caractere e retorna o caractere consumido.
      * Retorna '\0' se já estava no fim do arquivo.
      */
+    // Avança para o próximo caractere
     public char advance() {
+        // Se for fim de arquivo retorna nulo
         if (isEOF()) {
             return '\0';
         }
+        // Salva o caractere atual
         char consumed = (char) currentChar;
         try {
+            // Se for quebra de linha, incrementa linha e zera coluna
             if (consumed == '\n') {
                 line++;
                 column = 0;
             }
+            // Lê o próximo caractere do buffer
             currentChar = reader.read();
+            // Incrementa coluna
             column++;
         } catch (IOException e) {
+            // Lança erro se falhar a leitura
             throw new RuntimeException("Erro ao ler arquivo na linha " + line, e);
         }
+        // Retorna o caractere que foi consumido
         return consumed;
     }
 

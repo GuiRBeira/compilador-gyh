@@ -9,19 +9,24 @@ public class Main {
         }
 
         String filePath = args[0];
+        // Inicializa o analisador como nulo
         LexicalAnalyzer analyzer = null;
 
         try {
+            // Cria o analisador léxico
             analyzer = new LexicalAnalyzer(filePath);
+            // Cria o analisador sintático
             SyntacticAnalyzer parser = new SyntacticAnalyzer(analyzer);
 
             System.out.println("Iniciando Compilação (GYH)...");
             System.out.println("================================");
 
+            // Chama o parser para iniciar a análise
             SymbolTable table = parser.parse();
 
             System.out.println("================================");
             System.out.println("Compilação concluída com sucesso!");
+            // Imprime a tabela de símbolos
             System.out.println(table);
 
         } catch (GYHException e) {

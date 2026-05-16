@@ -6,22 +6,30 @@ public class SyntacticAnalyzer {
     private SymbolTable symbolTable;
 
     public SyntacticAnalyzer(LexicalAnalyzer scanner) {
+        // Atribui o scanner
         this.scanner = scanner;
+        // Cria a tabela de símbolos
         this.symbolTable = new SymbolTable();
-        this.advance(); // Inicializa o primeiro token
+        // Inicializa o primeiro token
+        this.advance(); 
     }
 
     private void advance() {
+        // Pede o próximo token ao scanner
         currentToken = scanner.getToken();
+        // Se for um erro léxico, lança erro semântico
         if (currentToken != null && currentToken.type == null) {
             semanticError("Erro Léxico encontrado: '" + currentToken.lexeme + "'");
         }
     }
 
     private void match(TokenType expected) {
+        // Verifica se o tipo do token atual é o esperado
         if (currentToken.type == expected) {
+            // Avança para o próximo
             advance();
         } else {
+            // Caso contrário, erro sintático
             syntaxError("Esperado " + expected + " mas encontrado " + currentToken.type + " ('" + currentToken.lexeme + "')");
         }
     }
@@ -35,17 +43,23 @@ public class SyntacticAnalyzer {
     }
 
     public SymbolTable parse() {
+        // Deve começar com :DEC
         match(TokenType.Delim); // ':'
         match(TokenType.PCDec); // 'DEC'
         
+        // Processa as declarações
         declarations();
         
+        // Deve ter :PROG
         match(TokenType.Delim); // ':'
         match(TokenType.PCProg); // 'PROG'
         
+        // Processa os comandos
         statementList();
         
+        // Deve terminar com EOF
         match(TokenType.EOF);
+        // Retorna a tabela de símbolos preenchida
         return symbolTable;
     }
 
@@ -88,6 +102,9 @@ public class SyntacticAnalyzer {
             ifCommand();
         } else if (currentToken.type == TokenType.PCEnqto) {
             whileCommand();
+        } else if (currentToken.type == TokenType.PCIni) {
+            // Se começar com INI, é um sub-algoritmo (bloco)
+            subAlgorithm();
         } else {
             syntaxError("Comando inesperado: " + currentToken.lexeme);
         }
@@ -148,8 +165,16 @@ public class SyntacticAnalyzer {
     private void whileCommand() {
         match(TokenType.PCEnqto);
         expression();
+        // O corpo do ENQTO é um sub-algoritmo
+        subAlgorithm();
+    }
+
+    private void subAlgorithm() {
+        // Início do bloco
         match(TokenType.PCIni);
+        // Lista de comandos dentro do bloco
         statementList();
+        // Fim do bloco
         match(TokenType.PCFim);
     }
 

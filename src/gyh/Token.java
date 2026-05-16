@@ -10,33 +10,52 @@ public class Token {
     public int column;
 
     public Token(TokenType type, String lexeme, int line, int column) {
+        // Define o tipo
         this.type = type;
+        // Define o lexema
         this.lexeme = lexeme;
+        // Define a linha
         this.line = line;
+        // Define a coluna
         this.column = column;
     }
 
     public Token(TokenType type, String lexeme, Integer intValue, int line, int column) {
+        // Define o tipo
         this.type = type;
+        // Define o lexema
         this.lexeme = lexeme;
+        // Define o valor inteiro
         this.intValue = intValue;
+        // Define a linha
         this.line = line;
+        // Define a coluna
         this.column = column;
     }
 
     public Token(TokenType type, String lexeme, Double realValue, int line, int column) {
+        // Define o tipo
         this.type = type;
+        // Define o lexema
         this.lexeme = lexeme;
+        // Define o valor real
         this.realValue = realValue;
+        // Define a linha
         this.line = line;
+        // Define a coluna
         this.column = column;
     }
 
     public Token(TokenType type, String lexeme, String stringValue, int line, int column) {
+        // Define o tipo
         this.type = type;
+        // Define o lexema
         this.lexeme = lexeme;
+        // Define o valor da string
         this.stringValue = stringValue;
+        // Define a linha
         this.line = line;
+        // Define a coluna
         this.column = column;
     }
 
