@@ -1,9 +1,5 @@
 grammar GYH;
 
-@header {
-package gyh.parser;
-}
-
 // Parser Rules
 
 programa : Delim PCDec declarations Delim PCProg statementList EOF ;

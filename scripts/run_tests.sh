@@ -11,47 +11,30 @@ echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}   Testes do Compilador - Linguagem GYH${NC}"
 echo -e "${BLUE}========================================${NC}"
 
-# Compilar
-echo -e "\n${YELLOW}[1/3] Compilando o analisador...${NC}"
-javac -cp "lib/antlr-4.13.2-complete.jar" -d build src/gyh/parser/*.java src/gyh/*.java
+# Determinar comando Maven a ser utilizado
+if command -v mvn &> /dev/null; then
+    MVN_CMD="mvn"
+else
+    if [ -f ".maven/bin/mvn" ]; then
+        MVN_CMD=".maven/bin/mvn"
+    else
+        echo -e "${RED}❌ Maven não encontrado! Instale o Maven ou certifique-se de que o diretório local .maven/ existe.${NC}"
+        exit 1
+    fi
+fi
+
+# Compilar e Testar via Maven
+echo -e "\n${YELLOW}[1/2] Compilando e executando testes unitários via Maven...${NC}"
+$MVN_CMD clean test
 
 if [ $? -ne 0 ]; then
-    echo -e "${RED}❌ Falha na compilação!${NC}"
+    echo -e "${RED}❌ Falha nos testes do Maven!${NC}"
     exit 1
 fi
-echo -e "${GREEN}✅ Compilação bem-sucedida!${NC}"
-
-# Baixar JUnit se não existir
-if [ ! -f lib/junit-platform-console-standalone-1.10.0.jar ]; then
-    echo -e "\n${YELLOW}Baixando JUnit...${NC}"
-    mkdir -p lib
-    wget -q -O lib/junit-platform-console-standalone-1.10.0.jar \
-        https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/1.10.0/junit-platform-console-standalone-1.10.0.jar
-fi
-
-# Compilar testes
-echo -e "\n${YELLOW}[2/3] Compilando os testes...${NC}"
-javac -cp "build:lib/junit-platform-console-standalone-1.10.0.jar:lib/antlr-4.13.2-complete.jar" \
-    -d build tests/java/gyh/*.java
-
-if [ $? -ne 0 ]; then
-    echo -e "${RED}❌ Falha na compilação dos testes!${NC}"
-    exit 1
-fi
-echo -e "${GREEN}✅ Testes compilados!${NC}"
-
-# Executar testes
-echo -e "\n${YELLOW}[3/3] Executando os testes...${NC}"
-echo -e "${BLUE}----------------------------------------${NC}"
-
-java -jar lib/junit-platform-console-standalone-1.10.0.jar \
-    --class-path "build:lib/antlr-4.13.2-complete.jar" \
-    --scan-class-path \
-    --include-classname '.*Test' \
-    --details tree
+echo -e "${GREEN}✅ Testes unitários concluídos com sucesso!${NC}"
 
 # Testes com programas de exemplo
-echo -e "\n${YELLOW}Testando programas de exemplo...${NC}"
+echo -e "\n${YELLOW}[2/2] Testando programas de exemplo...${NC}"
 echo -e "${BLUE}----------------------------------------${NC}"
 
 for file in tests/programs/*.gyh; do
@@ -59,7 +42,7 @@ for file in tests/programs/*.gyh; do
         filename=$(basename "$file")
         echo -n "  Testando $filename... "
         
-        java -cp "build:lib/antlr-4.13.2-complete.jar" gyh.Main "$file" > /dev/null 2>&1
+        $MVN_CMD exec:java -Dexec.args="$file" -q > /dev/null 2>&1
         exit_code=$?
 
         if [[ "$filename" == *"erro"* ]]; then
