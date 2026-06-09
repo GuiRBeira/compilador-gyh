@@ -13,7 +13,7 @@ echo -e "${BLUE}========================================${NC}"
 
 # Compilar
 echo -e "\n${YELLOW}[1/3] Compilando o analisador...${NC}"
-javac -d build src/gyh/*.java
+javac -cp "lib/antlr-4.13.2-complete.jar" -d build src/gyh/parser/*.java src/gyh/*.java
 
 if [ $? -ne 0 ]; then
     echo -e "${RED}❌ Falha na compilação!${NC}"
@@ -31,7 +31,7 @@ fi
 
 # Compilar testes
 echo -e "\n${YELLOW}[2/3] Compilando os testes...${NC}"
-javac -cp "build:lib/junit-platform-console-standalone-1.10.0.jar" \
+javac -cp "build:lib/junit-platform-console-standalone-1.10.0.jar:lib/antlr-4.13.2-complete.jar" \
     -d build tests/java/gyh/*.java
 
 if [ $? -ne 0 ]; then
@@ -45,7 +45,7 @@ echo -e "\n${YELLOW}[3/3] Executando os testes...${NC}"
 echo -e "${BLUE}----------------------------------------${NC}"
 
 java -jar lib/junit-platform-console-standalone-1.10.0.jar \
-    --class-path build \
+    --class-path "build:lib/antlr-4.13.2-complete.jar" \
     --scan-class-path \
     --include-classname '.*Test' \
     --details tree
@@ -59,7 +59,7 @@ for file in tests/programs/*.gyh; do
         filename=$(basename "$file")
         echo -n "  Testando $filename... "
         
-        java -cp build gyh.Main "$file" > /dev/null 2>&1
+        java -cp "build:lib/antlr-4.13.2-complete.jar" gyh.Main "$file" > /dev/null 2>&1
         exit_code=$?
 
         if [[ "$filename" == *"erro"* ]]; then

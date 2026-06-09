@@ -21,10 +21,16 @@ jobs:
         distribution: 'temurin'
         java-version: '21'
     
+    - name: 📥 Download ANTLR
+      run: |
+        mkdir -p lib
+        wget -q -O lib/antlr-4.13.2-complete.jar \
+          https://www.antlr.org/download/antlr-4.13.2-complete.jar || true
+
     - name: 🔨 Compile compiler
       run: |
         mkdir -p build
-        javac -d build src/gyh/*.java
+        javac -cp "lib/antlr-4.13.2-complete.jar" -d build src/gyh/parser/*.java src/gyh/*.java
     
     - name: 📥 Download JUnit
       run: |
@@ -35,8 +41,8 @@ jobs:
     - name: 🧪 Run tests
       run: |
         if [ -d tests/java/gyh ]; then
-          javac -cp "build:lib/junit-platform-console-standalone.jar" -d build tests/java/gyh/*.java
-          java -jar lib/junit-platform-console-standalone.jar --class-path build --scan-class-path --include-classname '.*Test'
+          javac -cp "build:lib/junit-platform-console-standalone.jar:lib/antlr-4.13.2-complete.jar" -d build tests/java/gyh/*.java
+          java -jar lib/junit-platform-console-standalone.jar --class-path "build:lib/antlr-4.13.2-complete.jar" --scan-class-path --include-classname '.*Test'
         else
           echo "No tests found yet"
         fi
@@ -46,7 +52,24 @@ jobs:
         echo "Testing example programs..."
         for file in tests/programs/*.gyh; do
           if [ -f "$file" ]; then
-            echo "  Testing $(basename $file)..."
-            java -cp build gyh.Main "$file"
+            filename=$(basename "$file")
+            echo "  Testing $filename..."
+            java -cp "build:lib/antlr-4.13.2-complete.jar" gyh.Main "$file" > /dev/null 2>&1
+            exit_code=$?
+            if [[ "$filename" == *"erro"* ]]; then
+              if [ $exit_code -eq 0 ]; then
+                echo "❌ Expected error in $filename but got exit code 0"
+                exit 1
+              else
+                echo "✅ Error expected and detected in $filename"
+              fi
+            else
+              if [ $exit_code -ne 0 ]; then
+                echo "❌ Unexpected error in $filename (exit code $exit_code)"
+                exit 1
+              else
+                echo "✅ Success in $filename"
+              fi
+            fi
           fi
         done
