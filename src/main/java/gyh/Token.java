@@ -64,4 +64,9 @@ public class Token {
         return String.format("Token [tipo=%-12s, lexema='%s', linha=%d, col=%d]", 
                              type, lexeme, line, column);
     }
+
+    public String toDebugString() {
+        return "Token [type=" + type + ", lexeme=" + lexeme + ", intValue=" + intValue 
+                + ", realValue=" + realValue + ", stringValue=" + stringValue + "]";
+    }
 }

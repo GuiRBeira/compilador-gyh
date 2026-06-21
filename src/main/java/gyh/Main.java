@@ -13,17 +13,32 @@ public class Main {
 
     public static void main(String[] args) {
         if (args.length < 1) {
-            System.out.println("Uso: java gyh.Main <arquivo.gyh>");
+            System.out.println("Uso: java gyh.Main <arquivo.gyh> [--tokens]");
             return;
         }
 
         String filePath = args[0];
+        boolean showTokens = args.length > 1 && args[1].equals("--tokens");
         // Inicializa o analisador como nulo
         LexicalAnalyzer analyzer = null;
 
         try {
             // Cria o analisador léxico
             analyzer = new LexicalAnalyzer(filePath);
+
+            if (showTokens) {
+                Token token;
+                do {
+                    token = analyzer.getToken();
+                    if (token.type != null) {
+                        System.out.println(token.toDebugString());
+                    } else {
+                        System.err.println("ERRO LÉXICO: Caractere ou sequência inválida '" + token.lexeme + "'");
+                    }
+                } while (token.type != TokenType.EOF);
+                return;
+            }
+
             // Cria o analisador sintático
             SyntacticAnalyzer parser = new SyntacticAnalyzer(analyzer);
 
