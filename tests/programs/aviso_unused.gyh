@@ -1,0 +1,8 @@
+:DEC
+a:INT
+b:INT
+c:INT
+:PROG
+a := 10
+IMPRIMIR a
+b := 20

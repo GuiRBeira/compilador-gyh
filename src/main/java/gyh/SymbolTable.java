@@ -10,6 +10,10 @@ public class SymbolTable {
         this.symbols = new HashMap<>();
     }
 
+    public Map<String, TokenType> getSymbols() {
+        return symbols;
+    }
+
     /**
      * Adiciona uma variável à tabela.
      * @return true se adicionado com sucesso, false se já existia.

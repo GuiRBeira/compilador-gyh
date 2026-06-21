@@ -44,6 +44,7 @@ public class SyntacticAnalyzer {
         // Run semantic analysis
         GYHSemanticAnalyzer semantic = new GYHSemanticAnalyzer();
         semantic.visit(tree);
+        semantic.checkUnusedVariables();
 
         return semantic.getSymbolTable();
     }

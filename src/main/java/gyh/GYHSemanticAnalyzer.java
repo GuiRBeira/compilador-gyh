@@ -3,12 +3,20 @@ package gyh;
 import gyh.parser.GYHBaseVisitor;
 import gyh.parser.GYHParser;
 import org.antlr.v4.runtime.Token;
+import java.util.HashSet;
+import java.util.Set;
 
 public class GYHSemanticAnalyzer extends GYHBaseVisitor<TokenType> {
     private SymbolTable symbolTable;
+    private Set<String> initializedVariables;
+    private Set<String> readVariables;
+    private Set<String> writtenVariables;
 
     public GYHSemanticAnalyzer() {
         this.symbolTable = new SymbolTable();
+        this.initializedVariables = new HashSet<>();
+        this.readVariables = new HashSet<>();
+        this.writtenVariables = new HashSet<>();
     }
 
     public SymbolTable getSymbolTable() {
@@ -51,6 +59,10 @@ public class GYHSemanticAnalyzer extends GYHBaseVisitor<TokenType> {
         if (varType == TokenType.PCInt && exprType == TokenType.PCReal) {
             semanticError("Tipo incompatível: não é possível atribuir REAL para a variável INT '" + varName + "'.", ctx.Var().getSymbol());
         }
+
+        initializedVariables.add(varName);
+        writtenVariables.add(varName);
+
         return null;
     }
 
@@ -60,6 +72,8 @@ public class GYHSemanticAnalyzer extends GYHBaseVisitor<TokenType> {
         if (!symbolTable.exists(varName)) {
             semanticError("Variável '" + varName + "' não declarada.", ctx.Var().getSymbol());
         }
+        initializedVariables.add(varName);
+        writtenVariables.add(varName);
         return null;
     }
 
@@ -123,6 +137,10 @@ public class GYHSemanticAnalyzer extends GYHBaseVisitor<TokenType> {
             if (!symbolTable.exists(varName)) {
                 semanticError("Variável '" + varName + "' não declarada.", ctx.Var().getSymbol());
             }
+            if (!initializedVariables.contains(varName)) {
+                semanticError("Variável '" + varName + "' pode não ter sido inicializada.", ctx.Var().getSymbol());
+            }
+            readVariables.add(varName);
             return symbolTable.getType(varName);
         } else if (ctx.NumInt() != null) {
             return TokenType.PCInt;
@@ -132,5 +150,15 @@ public class GYHSemanticAnalyzer extends GYHBaseVisitor<TokenType> {
             return visit(ctx.expression());
         }
         return null;
+    }
+
+    public void checkUnusedVariables() {
+        for (String varName : symbolTable.getSymbols().keySet()) {
+            if (!readVariables.contains(varName) && !writtenVariables.contains(varName)) {
+                System.out.println("[AVISO SEMÂNTICO] Variável '" + varName + "' declarada mas não utilizada.");
+            } else if (!readVariables.contains(varName)) {
+                System.out.println("[AVISO SEMÂNTICO] Variável '" + varName + "' é escrita mas nunca é lida.");
+            }
+        }
     }
 }
