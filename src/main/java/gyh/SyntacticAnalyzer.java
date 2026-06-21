@@ -19,38 +19,32 @@ public class SyntacticAnalyzer {
             }
         }
 
-        try {
-            CharStream input = CharStreams.fromFileName(scanner.getFilePath());
-            GYHLexer lexer = new GYHLexer(input);
-            lexer.removeErrorListeners();
-            CommonTokenStream tokens = new CommonTokenStream(lexer);
-            GYHParser parser = new GYHParser(tokens);
-            
-            // Handle syntax errors
-            parser.removeErrorListeners();
-            parser.addErrorListener(new BaseErrorListener() {
-                @Override
-                public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol,
-                                        int line, int charPositionInLine, String msg,
-                                        RecognitionException e) {
-                    throw new GYHException("SINTÁTICO", msg, line, charPositionInLine + 1);
-                }
-            });
+        ListTokenSource tokenSource = new ListTokenSource(scanner.getAntlrTokens(), scanner.getFilePath());
+        CommonTokenStream tokens = new CommonTokenStream(tokenSource);
+        GYHParser parser = new GYHParser(tokens);
+        
+        // Handle syntax errors
+        parser.removeErrorListeners();
+        parser.addErrorListener(new BaseErrorListener() {
+            @Override
+            public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol,
+                                     int line, int charPositionInLine, String msg,
+                                     RecognitionException e) {
+                throw new GYHException("SINTÁTICO", msg, line, charPositionInLine + 1);
+            }
+        });
 
-            // Start rule
-            GYHParser.ProgramaContext tree = parser.programa();
+        // Start rule
+        GYHParser.ProgramaContext tree = parser.programa();
 
-            // Print the tree
-            GYHTreePrinter printer = new GYHTreePrinter();
-            printer.visit(tree);
+        // Print the tree
+        GYHTreePrinter printer = new GYHTreePrinter();
+        printer.visit(tree);
 
-            // Run semantic analysis
-            GYHSemanticAnalyzer semantic = new GYHSemanticAnalyzer();
-            semantic.visit(tree);
+        // Run semantic analysis
+        GYHSemanticAnalyzer semantic = new GYHSemanticAnalyzer();
+        semantic.visit(tree);
 
-            return semantic.getSymbolTable();
-        } catch (IOException e) {
-            throw new RuntimeException("Erro ao abrir arquivo: " + scanner.getFilePath(), e);
-        }
+        return semantic.getSymbolTable();
     }
 }

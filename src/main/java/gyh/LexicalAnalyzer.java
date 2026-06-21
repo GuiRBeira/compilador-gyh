@@ -9,9 +9,14 @@ public class LexicalAnalyzer {
     private String filePath;
     private List<Token> tokensList;
     private int currentTokenIndex;
+    private List<org.antlr.v4.runtime.Token> antlrTokensList;
 
     public String getFilePath() {
         return filePath;
+    }
+
+    public List<org.antlr.v4.runtime.Token> getAntlrTokens() {
+        return antlrTokensList;
     }
 
     private static final Map<String, TokenType> KEYWORDS = new HashMap<>();
@@ -41,13 +46,17 @@ public class LexicalAnalyzer {
             lexer.removeErrorListeners();
             
             this.tokensList = new ArrayList<>();
+            this.antlrTokensList = new ArrayList<>();
             this.currentTokenIndex = 0;
 
             org.antlr.v4.runtime.Token antlrToken;
             while ((antlrToken = lexer.nextToken()).getType() != org.antlr.v4.runtime.Token.EOF) {
+                antlrTokensList.add(antlrToken);
                 Token gyhToken = convertToken(antlrToken);
                 tokensList.add(gyhToken);
             }
+            // Add EOF token
+            antlrTokensList.add(antlrToken);
             // Add EOF token at the end
             int lastLine = antlrToken.getLine();
             int lastCol = antlrToken.getCharPositionInLine() + 1;
