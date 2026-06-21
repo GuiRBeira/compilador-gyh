@@ -38,15 +38,32 @@ cat -n "$FILE_PATH"
 echo "----------------------------------------------------------------"
 echo ""
 
-javac -d build src/main/java/gyh/*.java
+# Determinar comando Maven a ser utilizado
+if command -v mvn &> /dev/null; then
+    MVN_CMD="mvn"
+else
+    if [ -f ".maven/bin/mvn" ]; then
+        MVN_CMD=".maven/bin/mvn"
+    else
+        echo -e "${RED}❌ Maven não encontrado! Instale o Maven ou certifique-se de que o diretório local .maven/ existe.${NC}"
+        exit 1
+    fi
+fi
+
+# Compilar via Maven de forma silenciosa
+$MVN_CMD compile -q
+if [ $? -ne 0 ]; then
+    echo -e "${RED}Erro: Falha na compilação do Maven!${NC}"
+    exit 1
+fi
 
 echo -e "${GREEN}[+] TOKENS IDENTIFICADOS (DIVISÃO PERFEITA):${NC}"
 echo -e "${CYAN}----------------------------------------------------------------${NC}"
 printf "%-18s | %-16s | %-20s\n" "TIPO DO TOKEN" "LEXEMA" "VALOR"
 echo -e "${CYAN}----------------------------------------------------------------${NC}"
 
-# Nova lógica de processamento mais robusta para a tabela
-java -cp build gyh.Main "$FILE_PATH" 2>&1 | while read -r line; do
+# Nova lógica de processamento mais robusta para a tabela usando Maven
+$MVN_CMD exec:java -Dexec.args="$FILE_PATH --tokens" -q 2>&1 | while read -r line; do
     if [[ "$line" == "Token ["* ]]; then
         # Extrai cada campo usando regex para evitar problemas com '='
         type=$(echo "$line" | sed -n 's/.*type=\([^,]*\),.*/\1/p')
