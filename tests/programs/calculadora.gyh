@@ -1,0 +1,82 @@
+:DEC
+opcao:INT
+num1:REAL
+num2:REAL
+resultado:REAL
+ativo:INT
+:PROG
+ativo := 1
+ENQTO ativo == 1
+INI
+    IMPRIMIR "----------------------------------"
+    IMPRIMIR "   CALCULADORA DO COMPILADOR GYH  "
+    IMPRIMIR "----------------------------------"
+    IMPRIMIR "1 - Somar"
+    IMPRIMIR "2 - Subtrair"
+    IMPRIMIR "3 - Multiplicar"
+    IMPRIMIR "4 - Dividir"
+    IMPRIMIR "0 - Sair"
+    IMPRIMIR "Escolha uma opcao:"
+    LER opcao
+    
+    SE opcao == 0 ENTAO
+        INI
+            IMPRIMIR "Saindo... Obrigado por usar!"
+            ativo := 0
+        FIM
+    FIM
+    
+    SE opcao == 1 ENTAO
+        INI
+            IMPRIMIR "Digite o primeiro numero:"
+            LER num1
+            IMPRIMIR "Digite o segundo numero:"
+            LER num2
+            resultado := num1 + num2
+            IMPRIMIR "Resultado da soma:"
+            IMPRIMIR resultado
+        FIM
+    FIM
+    
+    SE opcao == 2 ENTAO
+        INI
+            IMPRIMIR "Digite o primeiro numero:"
+            LER num1
+            IMPRIMIR "Digite o segundo numero:"
+            LER num2
+            resultado := num1 - num2
+            IMPRIMIR "Resultado da subtracao:"
+            IMPRIMIR resultado
+        FIM
+    FIM
+    
+    SE opcao == 3 ENTAO
+        INI
+            IMPRIMIR "Digite o primeiro numero:"
+            LER num1
+            IMPRIMIR "Digite o segundo numero:"
+            LER num2
+            resultado := num1 * num2
+            IMPRIMIR "Resultado da multiplicacao:"
+            IMPRIMIR resultado
+        FIM
+    FIM
+    
+    SE opcao == 4 ENTAO
+        INI
+            IMPRIMIR "Digite o primeiro numero:"
+            LER num1
+            IMPRIMIR "Digite o segundo numero:"
+            LER num2
+            SE num2 == 0.0 ENTAO
+                IMPRIMIR "Erro: Divisao por zero!"
+            SENAO
+                INI
+                    resultado := num1 / num2
+                    IMPRIMIR "Resultado da divisao:"
+                    IMPRIMIR resultado
+                FIM
+            FIM
+        FIM
+    FIM
+FIM
