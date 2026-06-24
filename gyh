@@ -1,0 +1,55 @@
+#!/bin/bash
+# Script de atalho do compilador GYH
+
+# Encontra a raiz do projeto de onde o script está localizado
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Exibir ajuda se não houver argumentos
+if [ $# -lt 1 ]; then
+    echo "Uso: gyh <arquivo.gyh> [--tokens]"
+    echo "Para mais informações, digite: gyh --help"
+    exit 1
+fi
+
+file_arg="$1"
+
+# Tratar comando de ajuda
+if [[ "$file_arg" == "-h" || "$file_arg" == "--help" ]]; then
+    echo "Compilador GYH"
+    echo "Uso:"
+    echo "  gyh <arquivo.gyh>            Compila o arquivo e gera o código C correspondente em output/"
+    echo "  gyh <arquivo.gyh> --tokens   Executa apenas a análise léxica e exibe a lista de tokens"
+    echo "  gyh --help | -h              Exibe esta mensagem de ajuda"
+    exit 0
+fi
+
+# Verificar se o arquivo fornecido existe
+if [ ! -f "$file_arg" ]; then
+    echo "❌ Erro: Arquivo '$file_arg' não encontrado!"
+    exit 1
+fi
+
+# Determinar comando Maven a ser utilizado
+if command -v mvn &> /dev/null; then
+    MVN_CMD="mvn"
+else
+    if [ -f "$SCRIPT_DIR/.maven/bin/mvn" ]; then
+        MVN_CMD="$SCRIPT_DIR/.maven/bin/mvn"
+    else
+        echo "❌ Erro: Maven não encontrado!"
+        exit 1
+    fi
+fi
+
+# Converte caminhos de arquivos relativos para caminhos absolutos antes de mudar de diretório
+args=()
+for arg in "$@"; do
+    if [ -f "$arg" ]; then
+        args+=("$(realpath "$arg")")
+    else
+        args+=("$arg")
+    fi
+done
+
+# Roda o compilador no diretório raiz do projeto repassando os argumentos convertidos
+(cd "$SCRIPT_DIR" && $MVN_CMD exec:java -Dexec.args="${args[*]}" -q)
