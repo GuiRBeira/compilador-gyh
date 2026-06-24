@@ -6,27 +6,53 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Exibir ajuda se não houver argumentos
 if [ $# -lt 1 ]; then
-    echo "Uso: gyh <arquivo.gyh> [--tokens]"
+    echo "Uso: gyh <arquivo.gyh> [-c] [--tokens]"
     echo "Para mais informações, digite: gyh --help"
     exit 1
 fi
 
-file_arg="$1"
+file_arg=""
+compile_bin=false
+tokens_only=false
 
-# Tratar comando de ajuda
-if [[ "$file_arg" == "-h" || "$file_arg" == "--help" ]]; then
-    echo "Compilador GYH"
-    echo "Uso:"
-    echo "  gyh <arquivo.gyh>            Compila o arquivo e gera o código C correspondente em output/"
-    echo "  gyh <arquivo.gyh> --tokens   Executa apenas a análise léxica e exibe a lista de tokens"
-    echo "  gyh --help | -h              Exibe esta mensagem de ajuda"
-    exit 0
+# Loop para parsear argumentos
+for arg in "$@"; do
+    if [[ "$arg" == "-c" || "$arg" == "--compile" ]]; then
+        compile_bin=true
+    elif [[ "$arg" == "--tokens" ]]; then
+        tokens_only=true
+    elif [[ "$arg" == "-h" || "$arg" == "--help" ]]; then
+        echo "Compilador GYH"
+        echo "Uso:"
+        echo "  gyh <arquivo.gyh>            Compila o arquivo e gera o código C correspondente em output/"
+        echo "  gyh <arquivo.gyh> -c         Compila o arquivo GYH e gera o executável binário correspondente"
+        echo "  gyh <arquivo.gyh> --tokens   Executa apenas a análise léxica e exibe a lista de tokens"
+        echo "  gyh --help | -h              Exibe esta mensagem de ajuda"
+        exit 0
+    else
+        # Se for um arquivo existente
+        if [ -f "$arg" ]; then
+            file_arg="$arg"
+        else
+            echo "❌ Erro: Arquivo ou opção '$arg' inválida!"
+            exit 1
+        fi
+    fi
+done
+
+# Se não foi fornecido arquivo
+if [ -z "$file_arg" ]; then
+    echo "Uso: gyh <arquivo.gyh> [-c] [--tokens]"
+    echo "Para mais informações, digite: gyh --help"
+    exit 1
 fi
 
-# Verificar se o arquivo fornecido existe
-if [ ! -f "$file_arg" ]; then
-    echo "❌ Erro: Arquivo '$file_arg' não encontrado!"
-    exit 1
+# Se solicitou compilação do binário, verifica se o gcc está instalado
+if [ "$compile_bin" = true ]; then
+    if ! command -v gcc &> /dev/null; then
+        echo "❌ Erro: gcc não encontrado no sistema! Instale o gcc para gerar o executável binário."
+        exit 1
+    fi
 fi
 
 # Determinar comando Maven a ser utilizado
@@ -41,15 +67,40 @@ else
     fi
 fi
 
-# Converte caminhos de arquivos relativos para caminhos absolutos antes de mudar de diretório
-args=()
-for arg in "$@"; do
-    if [ -f "$arg" ]; then
-        args+=("$(realpath "$arg")")
-    else
-        args+=("$arg")
-    fi
-done
+# Converte o caminho do arquivo de entrada para caminho absoluto
+java_args=()
+java_args+=("$(realpath "$file_arg")")
+if [ "$tokens_only" = true ]; then
+    java_args+=("--tokens")
+fi
 
-# Roda o compilador no diretório raiz do projeto repassando os argumentos convertidos
-(cd "$SCRIPT_DIR" && $MVN_CMD exec:java -Dexec.args="${args[*]}" -q)
+# Roda o compilador no diretório raiz do projeto repassando os argumentos do compilador Java
+(cd "$SCRIPT_DIR" && $MVN_CMD exec:java -Dexec.args="${java_args[*]}" -q)
+java_exit=$?
+
+# Se a compilação Java falhou, encerra com o mesmo código de erro
+if [ $java_exit -ne 0 ]; then
+    exit $java_exit
+fi
+
+# Se a flag de compilação C estiver ativa, compila para binário executável
+if [ "$compile_bin" = true ] && [ "$tokens_only" = false ]; then
+    input_filename=$(basename "$file_arg")
+    if [[ "$input_filename" == *.gyh ]]; then
+        base_name="${input_filename%.gyh}"
+    else
+        base_name="$input_filename"
+    fi
+    
+    c_file="$SCRIPT_DIR/output/$base_name.c"
+    binary_output="$SCRIPT_DIR/output/$base_name"
+    
+    echo "Compilando código C com gcc..."
+    gcc "$c_file" -o "$binary_output"
+    if [ $? -eq 0 ]; then
+        echo "✓ Executável gerado com sucesso: $binary_output"
+    else
+        echo "❌ Erro: Falha ao compilar com o gcc."
+        exit 1
+    fi
+fi
