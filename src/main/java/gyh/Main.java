@@ -1,5 +1,7 @@
 package gyh;
 
+import gyh.parser.GYHParser;
+
 /*
  * Trabalho de Compiladores - Compilador GYH
  * Nome: Guilherme R. Beira
@@ -39,14 +41,32 @@ public class Main {
                 return;
             }
 
+            // 1. Checagem de erros léxicos antes de prosseguir
+            for (Token t : analyzer.getAllTokens()) {
+                if (t.type == null) {
+                    throw new GYHException("LÉXICO", "Caractere ou sequência inválida '" + t.lexeme + "'", t.line, t.column);
+                }
+            }
+
             // Cria o analisador sintático
             SyntacticAnalyzer parser = new SyntacticAnalyzer(analyzer);
 
             System.out.println("Iniciando Compilação (GYH)...");
             System.out.println("================================");
 
-            // Chama o parser para iniciar a análise
-            SymbolTable table = parser.parse();
+            // 2. Chama o parser para iniciar a análise sintática e obter a ParseTree
+            GYHParser.ProgramaContext tree = parser.parse();
+
+            // 3. Imprime a árvore sintática
+            GYHTreePrinter printer = new GYHTreePrinter();
+            printer.visit(tree);
+
+            // 4. Executa a análise semântica
+            GYHSemanticAnalyzer semantic = new GYHSemanticAnalyzer();
+            semantic.visit(tree);
+            semantic.checkUnusedVariables();
+
+            SymbolTable table = semantic.getSymbolTable();
 
             System.out.println("================================");
             System.out.println("Compilação concluída com sucesso!");

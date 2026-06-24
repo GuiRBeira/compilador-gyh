@@ -11,14 +11,7 @@ public class SyntacticAnalyzer {
         this.scanner = scanner;
     }
 
-    public SymbolTable parse() {
-        // First check for lexical errors detected by the scanner
-        for (Token t : scanner.getAllTokens()) {
-            if (t.type == null) {
-                throw new GYHException("SEMÂNTICO", "Erro Léxico encontrado: '" + t.lexeme + "'", t.line, t.column);
-            }
-        }
-
+    public GYHParser.ProgramaContext parse() {
         ListTokenSource tokenSource = new ListTokenSource(scanner.getAntlrTokens(), scanner.getFilePath());
         CommonTokenStream tokens = new CommonTokenStream(tokenSource);
         GYHParser parser = new GYHParser(tokens);
@@ -35,17 +28,6 @@ public class SyntacticAnalyzer {
         });
 
         // Start rule
-        GYHParser.ProgramaContext tree = parser.programa();
-
-        // Print the tree
-        GYHTreePrinter printer = new GYHTreePrinter();
-        printer.visit(tree);
-
-        // Run semantic analysis
-        GYHSemanticAnalyzer semantic = new GYHSemanticAnalyzer();
-        semantic.visit(tree);
-        semantic.checkUnusedVariables();
-
-        return semantic.getSymbolTable();
+        return parser.programa();
     }
 }
