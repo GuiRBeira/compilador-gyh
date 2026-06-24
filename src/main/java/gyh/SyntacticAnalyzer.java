@@ -2,7 +2,6 @@ package gyh;
 
 import org.antlr.v4.runtime.*;
 import gyh.parser.*;
-import java.io.IOException;
 
 public class SyntacticAnalyzer {
     private LexicalAnalyzer scanner;
