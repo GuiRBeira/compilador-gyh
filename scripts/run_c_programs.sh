@@ -52,6 +52,10 @@ for file in "${c_files[@]}"; do
             echo -e "${BLUE}  [Entrada sugerida: 1 5.0]${NC}"
             output=$(echo -e "1\n5.0" | "$binary")
             echo -e "  Saída:\n$output"
+        elif [[ "$filename" == "calculadora.c" ]]; then
+            echo -e "${BLUE}  [Entrada sugerida: 1 10.0 20.0 0]${NC}"
+            output=$(echo -e "1\n10.0\n20.0\n0" | "$binary" | tail -n 20)
+            echo -e "  Saída (Últimas 20 linhas):\n$output"
         else
             # Executa diretamente sem entrada ou com entrada vazia
             output=$("$binary" < /dev/null 2>&1)
