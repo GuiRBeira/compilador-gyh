@@ -1,0 +1,12 @@
+:DEC
+x:INT
+y:INT
+z:INT
+:PROG
+x := 10
+SE x > 0 ENTAO
+    INI
+        # Erro: z nao foi inicializada
+        y := z + 1
+    FIM
+FIM

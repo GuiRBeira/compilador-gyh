@@ -68,10 +68,31 @@ public class Main {
 
             SymbolTable table = semantic.getSymbolTable();
 
+            // 5. Geração de Código em C
+            GYHCodeGenerator generator = new GYHCodeGenerator(table);
+            String cCode = generator.visit(tree);
+
+            // Determina arquivo de saída (.c) na pasta 'output'
+            String inputFileName = java.nio.file.Paths.get(filePath).getFileName().toString();
+            String baseName;
+            if (inputFileName.endsWith(".gyh")) {
+                baseName = inputFileName.substring(0, inputFileName.length() - 4);
+            } else {
+                baseName = inputFileName;
+            }
+
+            String outputDir = "output";
+            java.nio.file.Files.createDirectories(java.nio.file.Paths.get(outputDir));
+            String outputFilePath = outputDir + "/" + baseName + ".c";
+
+            // Escreve o código C no arquivo
+            java.nio.file.Files.writeString(java.nio.file.Paths.get(outputFilePath), cCode);
+
             System.out.println("================================");
             System.out.println("Compilação concluída com sucesso!");
             // Imprime a tabela de símbolos
             System.out.println(table);
+            System.out.println("Código C gerado com sucesso em: " + outputFilePath);
 
         } catch (GYHException e) {
             System.err.println(e.getMessage());

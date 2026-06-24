@@ -1,0 +1,9 @@
+:DEC
+a:INT
+b:REAL
+c:INT
+:PROG
+a := 10
+b := 2.5
+# Erro: Expressao REAL nao pode ser atribuida a variavel INT
+c := (a + b) * 2

@@ -17,3 +17,7 @@ Thumbs.db
 # Test outputs
 test-output/
 src/gyh/*.bak
+
+# Generated C code and binaries
+output/
+tests/programs/*.c

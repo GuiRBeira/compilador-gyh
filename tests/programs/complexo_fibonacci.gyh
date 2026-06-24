@@ -1,0 +1,20 @@
+:DEC
+n:INT
+termo1:INT
+termo2:INT
+temp:INT
+contador:INT
+:PROG
+# Calcula a serie de Fibonacci ate o N-esimo termo
+LER n
+termo1 := 0
+termo2 := 1
+contador := 1
+ENQTO contador <= n
+INI
+    IMPRIMIR termo1
+    temp := termo1 + termo2
+    termo1 := termo2
+    termo2 := temp
+    contador := contador + 1
+FIM

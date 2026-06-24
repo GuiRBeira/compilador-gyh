@@ -1,0 +1,20 @@
+:DEC
+a:INT
+b:REAL
+c:REAL
+limite:INT
+:PROG
+LER a
+LER b
+c := 1.5
+limite := 5
+# Teste de expressao logica complexa com E, OU e comparacoes
+ENQTO a < limite E (b > 0.0 OU c < 10.0)
+INI
+    b := b - 1.0
+    c := c * 1.5
+    a := a + 1
+FIM
+IMPRIMIR a
+IMPRIMIR b
+IMPRIMIR c
