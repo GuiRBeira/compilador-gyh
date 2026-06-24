@@ -6,3 +6,4 @@ c:INT
 a := 10
 IMPRIMIR a
 b := 20
+# Aqui tem que dar aviso de variavel nao usada (Unused)
