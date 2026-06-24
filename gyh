@@ -1,31 +1,38 @@
 #!/bin/bash
 # Script de atalho do compilador GYH
 
+# Resolve o caminho do script, mesmo que seja um link simbólico
+SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
 # Encontra a raiz do projeto de onde o script está localizado
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 
 # Exibir ajuda se não houver argumentos
 if [ $# -lt 1 ]; then
-    echo "Uso: gyh <arquivo.gyh> [-c] [--tokens]"
+    echo "Uso: gyh <arquivo.gyh> [-c] [-r] [--tokens]"
     echo "Para mais informações, digite: gyh --help"
     exit 1
 fi
 
 file_arg=""
 compile_bin=false
+run_bin=false
 tokens_only=false
 
 # Loop para parsear argumentos
 for arg in "$@"; do
     if [[ "$arg" == "-c" || "$arg" == "--compile" ]]; then
         compile_bin=true
+    elif [[ "$arg" == "-r" || "$arg" == "--run" ]]; then
+        compile_bin=true
+        run_bin=true
     elif [[ "$arg" == "--tokens" ]]; then
         tokens_only=true
     elif [[ "$arg" == "-h" || "$arg" == "--help" ]]; then
         echo "Compilador GYH"
         echo "Uso:"
         echo "  gyh <arquivo.gyh>            Compila o arquivo e gera o código C correspondente em output/"
-        echo "  gyh <arquivo.gyh> -c         Compila o arquivo GYH e gera o executável binário correspondente"
+        echo "  gyh <arquivo.gyh> -c         Compila o arquivo GYH e gera o executável binário correspondente em output/"
+        echo "  gyh <arquivo.gyh> -r         Compila, gera o executável e executa-o imediatamente"
         echo "  gyh <arquivo.gyh> --tokens   Executa apenas a análise léxica e exibe a lista de tokens"
         echo "  gyh --help | -h              Exibe esta mensagem de ajuda"
         exit 0
@@ -42,15 +49,15 @@ done
 
 # Se não foi fornecido arquivo
 if [ -z "$file_arg" ]; then
-    echo "Uso: gyh <arquivo.gyh> [-c] [--tokens]"
+    echo "Uso: gyh <arquivo.gyh> [-c] [-r] [--tokens]"
     echo "Para mais informações, digite: gyh --help"
     exit 1
 fi
 
-# Se solicitou compilação do binário, verifica se o gcc está instalado
+# Se solicitou compilação ou execução do binário, verifica se o gcc está instalado
 if [ "$compile_bin" = true ]; then
     if ! command -v gcc &> /dev/null; then
-        echo "❌ Erro: gcc não encontrado no sistema! Instale o gcc para gerar o executável binário."
+        echo "❌ Erro: gcc não encontrado no sistema! Instale o gcc para gerar e executar o binário."
         exit 1
     fi
 fi
@@ -99,6 +106,13 @@ if [ "$compile_bin" = true ] && [ "$tokens_only" = false ]; then
     gcc "$c_file" -o "$binary_output"
     if [ $? -eq 0 ]; then
         echo "✓ Executável gerado com sucesso: $binary_output"
+        
+        # Se solicitou rodar o binário, executa-o de forma interativa
+        if [ "$run_bin" = true ]; then
+            echo -e "\n=== Executando $base_name ==="
+            "$binary_output"
+            echo -e "=========================="
+        fi
     else
         echo "❌ Erro: Falha ao compilar com o gcc."
         exit 1
