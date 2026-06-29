@@ -1,0 +1,26 @@
+{
+    "name": "gyh-lang",
+    "displayName": "Linguagem GYH",
+    "description": "Suporte a coloração de sintaxe para a linguagem GYH",
+    "version": "1.0.0",
+    "publisher": "compilador-gyh",
+    "engines": {
+        "vscode": "^1.60.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "gyh",
+            "aliases": ["GYH", "gyh"],
+            "extensions": [".gyh"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "gyh",
+            "scopeName": "source.gyh",
+            "path": "./syntaxes/gyh.tmLanguage.json"
+        }]
+    }
+}

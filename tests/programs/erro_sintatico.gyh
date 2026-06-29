@@ -1,0 +1,6 @@
+:DEC
+x:INT
+:PROG
+SE x > 0
+    x := 1
+FIM

@@ -1,0 +1,13 @@
+{
+    "comments": {
+        "lineComment": "#"
+    },
+    "brackets": [
+        ["INI", "FIM"],
+        ["(", ")"]
+    ],
+    "autoClosingPairs": [
+        {"open": "(", "close": ")"},
+        {"open": "\"", "close": "\""}
+    ]
+}
