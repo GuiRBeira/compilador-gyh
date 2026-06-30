@@ -2,7 +2,6 @@ package gyh;
 
 import gyh.parser.GYHBaseVisitor;
 import gyh.parser.GYHParser;
-import org.antlr.v4.runtime.tree.ParseTree;
 
 public class GYHCodeGenerator extends GYHBaseVisitor<String> {
     private SymbolTable symbolTable;
